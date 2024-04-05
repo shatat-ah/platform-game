@@ -42,6 +42,7 @@
 buffer: .word 0:20000
 result: .asciiz "END"
 
+
 .eqv BASE_ADDRESS 0x10008000
 .eqv END_ADDRESS 0x10008ffc
 .eqv END_PIXEL 65536
@@ -60,7 +61,6 @@ move $t4, $t0
 li $t1, 0		# Counter
 
 main:
-	jal game
 	
 	li $t9, 0xffff0000
 	lw $t8, 0($t9)
@@ -68,10 +68,15 @@ main:
 
 	keypress_happened:
 		lw $t2, 4($t9) # this assumes $t9 is set to 0xfff0000 from before
-		beq $t2, 0x61, respond_to_a # ASCII code of 'a' is 0x61 or 97 in decimal
+		beq $t2, 0x71, quit # Hex code of 'q' is 0x71, set to quit
+		beq $t2, 0x72, restart # Hex code of 'r' is 0x72, set to restart
 		j keypress_happened
 	
-	respond_to_a:
+	restart:
+		jal game
+		j keypress_happened
+	
+	quit:
 		li $v0, 4
 		la $a0, result
 		syscall
