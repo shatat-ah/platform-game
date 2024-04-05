@@ -30,7 +30,7 @@
 # - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
 #
 # Are you OK with us sharing the video with people outside course staff?
-# - yes / no / yes, and please share this project github link as well!
+# - yes
 #
 # Any additional information that the TA needs to know:
 # - (write here, if any)
@@ -42,7 +42,10 @@
 buffer: .word 0:100000
 result: .asciiz "END"
 menucolour: .word 
-level0: 
+level1: .word 
+level2: .word 
+level3: .word 
+gameover: .word 
 
 
 .eqv BASE_ADDRESS 0x10008000
@@ -79,8 +82,10 @@ main:
 		move $t4, $t0
 		li $t1, 0
 		lw $t2, 4($t9) # this assumes $t9 is set to 0xfff0000 from before
+		beq $t2, 0x65, END # Hex code of 'e' is 0x65, set to exit and call $v0 10
 		beq $t2, 0x71, quit # Hex code of 'q' is 0x71, set to quit
 		beq $t2, 0x72, restart # Hex code of 'r' is 0x72, set to restart
+		beq $t2, 0x73, restart # Hex code of 's' is 0x72, set to restart
 		j keypress_happened
 	
 	restart:
@@ -92,10 +97,6 @@ main:
 		addi $t4, $t4, WIDTH
 		addi $t1, $t1, WIDTH
 		blt $t1, END_PIXEL, quit
-		li $v0, 4
-		la $a0, result
-		syscall
-		j END
 
 game:
 
@@ -117,6 +118,15 @@ game:
 			jr $ra
 
 END:
+	sw $s0, 0($t4)
+	addi $t4, $t4, WIDTH
+	addi $t1, $t1, WIDTH
+	blt $t1, END_PIXEL, END
+
+	li $v0, 4
+	la $a0, result
+	syscall
+		
 	li $v0, 10 # terminate the program gracefully
 	syscall
 
