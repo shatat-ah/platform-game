@@ -51,30 +51,39 @@ gameover: .word 0xffcb8f55, 0xffcb8f55, 0xffcb8f55, 0xffcb8f55, 0xffcb8f55, 0xff
 .eqv BASE_ADDRESS 0x10008000
 .eqv END_ADDRESS 0x10008ffc
 .eqv END_PIXEL 65536
-.eqv WIDTH 4
+.eqv WIDTH 4 # Width of an integer
 .eqv PERROW 256
 
 .text
-li $t0, BASE_ADDRESS	# $t0 stores the base address for display
+li $t0, BASE_ADDRESS	# stores the base address for display
 li $s0, 0x000000	# stores the black colour code
 li $s1, 0xdb0c29	# stores the red colour code
-li $s2, 0x71b415	# stores the green colour code (green)
+li $s2, 0x71b415	# stores the green colour code
 li $s3, 0x4a72e9	# stores the blue colour code
 li $s4, 0xffd028	# stores the yellow colour code
+li $s5, 0xffffff	# stores colour code for colour arrays (white by default)
 
-move $t4, $t0
+
 li $t1, 0		# Counter
+li $t2, 0		# Keypress
+move $t4, $t0		# temporary register for base address
+li $t5, 30		# starting X position
+li $t6, 30		# starting Y position
+la $t7, menucolour	# Register for temporary array
 
 main:
 	menu:
-		sw $s4, 0($t4)
+		# Display Main Menu on BitMap Display
+		lw $s5, 0($t7)
+		sw $s5, 0($t4)
+		addi $t7, $t7, 4
 		addi $t4, $t4, WIDTH
 		addi $t1, $t1, WIDTH
 		blt $t1, END_PIXEL, menu
 		j continue
 	
 	continue:
-		li $t9, 0xffff0000
+		li $t9, 0xffff0000 # hex code for keyboard
 		lw $t8, 0($t9)
 		beq $t8, 1, keypress_happened
 
@@ -93,31 +102,48 @@ main:
 		j keypress_happened
 	
 	quit:
-		sw $s4, 0($t4)
-		addi $t4, $t4, WIDTH
-		addi $t1, $t1, WIDTH
-		blt $t1, END_PIXEL, quit
+		# Quit to Main Menu
+		# Display Main Menu on BitMap Display
+		la $t7, menucolour # set $t7 to address of menucolour
+		quitloop:
+			lw $s5, 0($t7)
+			sw $s5, 0($t4)
+			addi $t7, $t7, 4
+			addi $t4, $t4, WIDTH
+			addi $t1, $t1, WIDTH
+			blt $t1, END_PIXEL, quitloop
 
 game:
-
-	ColourBG:
-		sw $s3, 0($t4)
-		addi $t4, $t4, WIDTH
-		addi $t1, $t1, WIDTH
-		blt $t1, END_PIXEL, ColourBG
-		jr $ra
-
-	ColourStage:
-		li $t4, END_ADDRESS
-		li $t1, END_PIXEL
-		Loop:
-			sw $s2, END_PIXEL($t4)
-			subi $t4, $t4, WIDTH
-			subi $t1, $t1, WIDTH
-			bgt $t1, 9984, Loop
-			jr $ra
+	
+	
+	# Display Level 1 Stage on BitMap Display
+	stage1:
+		la $t7, level1
+		stageloop1:
+			lw $s5, 0($t7)
+			sw $s5, 0($t4)
+			addi $t7, $t7, 4
+			addi $t4, $t4, WIDTH
+			addi $t1, $t1, WIDTH
+			blt $t1, END_PIXEL, stageloop1
+		j character
+	
+	character:
+		sw $s0, 0($t5)
+		addi $t5, $t5, 4
+		sw $s0, 0($t5)
+		addi $t5, $t5, 256
+		sw $s0, 0($t5)
+		addi $t5, $t5, 4
+		sw $s0, 0($t5)
+		j keypress_happened
+		
+	move_left:
+	
+	cover:
 
 END:
+	# Display Black Screen on BitMap Display
 	sw $s0, 0($t4)
 	addi $t4, $t4, WIDTH
 	addi $t1, $t1, WIDTH
