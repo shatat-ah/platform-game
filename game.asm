@@ -63,22 +63,20 @@ li $s2, 0x71b415	# stores the green colour code
 li $s3, 0x4a72e9	# stores the blue colour code
 li $s4, 0xffd028	# stores the yellow colour code
 li $s5, 0xffffff	# stores colour code for colour arrays (white by default)
-
+li $s6, 1		# Binary Check 
+li $s7, 3		# Which level player is in
 
 li $t1, 0		# Counter
 li $t2, 0		# Keypress
 li $t3, 0		# current position address
 move $t4, $t0		# temporary register for base address
-li $t5, 30		# starting X position
-li $t6, 30		# starting Y position
+li $t5, 15		# starting X position
+li $t6, 47		# starting Y position
 la $t7, menucolour	# Register for temporary array of colours
 
 main:
+	li $t9, 0xffff0000 # hex code for keyboard
 
-	li $v0, 32
-	li $a0, SLEEP # Wait
-	syscall
-	
 	menu:
 		# Display Main Menu on BitMap Display
 		lw $s5, 0($t7)
@@ -90,18 +88,25 @@ main:
 		j continue
 	
 	continue:
-		li $t9, 0xffff0000 # hex code for keyboard
 		lw $t8, 0($t9)
 		beq $t8, 1, keypress_happened
 
 	keypress_happened:
+		# Sleep Time
+		li $v0, 32
+		li $a0, SLEEP # Wait
+		syscall
+		# Reset Base Address and Counter
 		move $t4, $t0
 		li $t1, 0
+		#Keyboard Operatrions
 		lw $t2, 4($t9) # this assumes $t9 is set to 0xfff0000 from before
 		beq $t2, 0x65, END # Hex code of 'e' is 0x65, set to exit and call $v0 10
 		beq $t2, 0x71, quit # Hex code of 'q' is 0x71, set to quit
 		beq $t2, 0x72, restart # Hex code of 'r' is 0x72, set to restart
 		beq $t2, 0x73, restart # Hex code of 's' is 0x72, set to restart
+		beq $t2, 0x61, move_left
+		beq $t2, 0x64, move_right
 		j keypress_happened
 	
 	restart:
@@ -122,49 +127,121 @@ main:
 
 game:
 	
-	address:
-		# adress(x,y) = address(t5,t6) = (t6 * PERROW + t5)*4
-		li $t8, PERROW
-		mult $t8, $t6
-		mflo $t3
-		add $t3, $t3, $t5
-		li $t8, WIDTH
-		mult $t3, $t8
-		mflo $t3
+	startpos:
+		li $t8, 1
+		beq $s7, $t8, ONE
+		li $t8, 2
+		beq $s7, $t8, TWO
+		li $t8, 3
+		beq $s7, $t8, THREE
+		
+		ONE:
+			# Different Starts for different levels
+			li $t5, 15
+			li $t6, 47
+			j contstart
+		TWO:
+			# Different Starts for different levels
+			li $t5, 15
+			li $t6, 51
+			j contstart
+		THREE:
+			# Different Starts for different levels
+			li $t5, 32
+			li $t6, 50
+			j contstart
+		
+		contstart:	
+			# adress(x,y) = address(t5,t6) = (t6 * PERROW + t5)*4
+			li $t8, PERROW
+			mult $t8, $t6
+			mflo $t3
+			add $t3, $t3, $t5
+			li $t8, WIDTH
+			mult $t3, $t8
+			mflo $t3
 	
 	
 	# Display Level 1 Stage on BitMap Display
-	stage1:
-		la $t7, level1
-		stageloop1:
+	stage:
+		li $t8, 1
+		beq $s7, $t8, BGONE
+		li $t8, 2
+		beq $s7, $t8, BGTWO
+		li $t8, 3
+		beq $s7, $t8, BGTHREE
+		
+		BGONE:
+			la $t7, level1
+			j stageloop
+		BGTWO:
+			la $t7, level2
+			j stageloop
+		BGTHREE:
+			la $t7, level3
+			j stageloop
+		
+		stageloop:
 			lw $s5, 0($t7)
 			sw $s5, 0($t4)
 			addi $t7, $t7, 4
 			addi $t4, $t4, WIDTH
 			addi $t1, $t1, WIDTH
-			blt $t1, END_PIXEL, stageloop1
+			blt $t1, END_PIXEL, stageloop
 		j character
 	
 	character:
-		li $t8, PERROW
-		mult $t8, $t6
-		mflo $t3
-		add $t3, $t3, $t5
-		li $t8, WIDTH
-		mult $t3, $t8
-		mflo $t3
-		sw $s0, 0($t3)
-		addi $t3, $t3, 4
-		sw $s0, 0($t3)
-		addi $t3, $t3, 256
-		sw $s0, 0($t3)
-		addi $t3, $t3, 4
-		sw $s0, 0($t3)
-		j keypress_happened
+		move $t4, $t0
+		add $t4, $t4, $t3
+		li $s6, 1
 		
-	move_left:
+		sw $s0, 0($t4)
+		addi $t4, $t4, 4
+		sw $s0, 0($t4)
+		addi $t4, $t4, 4
+		sw $s1, 0($t4)
+		addi $t4, $t4, 256
+		sw $s0, 0($t4)
+		subi $t4, $t4, 4
+		sw $s0, 0($t4)
+		subi $t4, $t4, 4
+		sw $s0, 0($t4)
+		addi $t4, $t4, 260
+		sw $s0, 0($t4)
+		j continue
 	
 	cover:
+		move $t4, $t0
+		add $t4, $t4, $t3
+		
+		sw $s3, 0($t4)
+		addi $t4, $t4, 4
+		sw $s3, 0($t4)
+		addi $t4, $t4, 4
+		sw $s3, 0($t4)
+		addi $t4, $t4, 256
+		sw $s3, 0($t4)
+		subi $t4, $t4, 4
+		sw $s3, 0($t4)
+		subi $t4, $t4, 4
+		sw $s3, 0($t4)
+		addi $t4, $t4, 260
+		sw $s3, 0($t4)
+		li $s6, 0
+	
+	move_left:
+		bnez $s6, cover
+		subi $t3, $t3, 8
+		li $s6, 0
+    		beq $t2, 0x64, move_right
+    		j character
+	
+	move_right:
+		bnez $s6, cover
+		addi $t3, $t3, 8
+		li $s6, 0
+		beq $t2, 0x61, move_left
+    		j character
 
 END:
 	# Display Black Screen on BitMap Display
