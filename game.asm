@@ -104,9 +104,10 @@ main:
 		beq $t2, 0x65, END # Hex code of 'e' is 0x65, set to exit and call $v0 10
 		beq $t2, 0x71, quit # Hex code of 'q' is 0x71, set to quit
 		beq $t2, 0x72, restart # Hex code of 'r' is 0x72, set to restart
-		beq $t2, 0x73, restart # Hex code of 's' is 0x72, set to restart
+		beq $t2, 0x73, move_down # Hex code of 's' is 0x72, set to restart
 		beq $t2, 0x61, move_left
 		beq $t2, 0x64, move_right
+		beq $t2, 0x77, jump
 		j keypress_happened
 	
 	restart:
@@ -208,6 +209,7 @@ game:
 		sw $s0, 0($t4)
 		addi $t4, $t4, 260
 		sw $s0, 0($t4)
+
 		j continue
 	
 	cover:
@@ -228,11 +230,15 @@ game:
 		addi $t4, $t4, 260
 		sw $s3, 0($t4)
 		li $s6, 0
+		addi $t4, $t4, 256
 	
 	move_left:
 		bnez $s6, cover
-		subi $t3, $t3, 8
+		subi $t3 $t3, 4
 		li $s6, 0
+		lw $s5, 0($t4)
+		beq $s5, $s3, move_down
+		beq $t2, 0x77, jump
     		beq $t2, 0x64, move_right
     		j character
 	
@@ -240,7 +246,29 @@ game:
 		bnez $s6, cover
 		addi $t3, $t3, 8
 		li $s6, 0
+		lw $s5, 0($t4)
+		beq $s5, $s3, move_down
+		beq $t2, 0x77, jump
 		beq $t2, 0x61, move_left
+    		j character
+    	
+    	jump:
+		bnez $s6, cover
+		subi $t3 $t3, 512
+		li $s6, 0
+		lw $s5, 0($t4)
+		beq $s5, $s3, move_down
+		beq $t2, 0x64, move_right
+		beq $t2, 0x61, move_left
+    		j character
+    		
+    	move_down:
+		bnez $s6, cover
+		addi $t3, $t3, 256
+		li $s6, 0
+		beq $t2, 0x64, move_right
+		beq $t2, 0x61, move_left
+		beq $t2, 0x77, jump
     		j character
 
 END:
