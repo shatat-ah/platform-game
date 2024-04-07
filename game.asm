@@ -269,6 +269,9 @@ game:
 		beq $t2, 0x64, move_right
 		beq $t2, 0x61, move_left
 		beq $t2, 0x77, jump
+		li $v0, 32
+		li $a0, 1000 # Wait
+		syscall
     		j character
 
 END:
