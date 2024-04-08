@@ -64,7 +64,7 @@ li $s3, 0x4a72e9	# stores the blue colour code
 li $s4, 0xffd028	# stores the yellow colour code
 li $s5, 0xffffff	# stores colour code for colour arrays (white by default)
 li $s6, 1		# Binary Check 
-li $s7, 3		# Which level player is in
+li $s7, 1		# Which level player is in
 
 li $t1, 0		# Counter
 li $t2, 0		# Keypress
