@@ -23,7 +23,7 @@
 # (See the assignment handout for the list of additional features)
 # 1. Multiple Levels
 # 2. Start Menu
-# 3. Moving Objects (Not Finished Implementing)
+# 3. Moving Platforms (Not Finished Implementing)
 #
 # Link to video demonstration for final submission:
 # - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
@@ -113,6 +113,7 @@ main:
 		beq $t2, 0x61, move_left 	# Hex code of 'a' is 0x61, set to move left
 		beq $t2, 0x64, move_right 	# Hex code of 's' is 0x64, set to move right
 		beq $t2, 0x77, jump 		# Hex code of 'w' is 0x77, set to jump
+		beq $t2, 0x7A, move_down	# Hex code of 'z' is 0x7A, set to jump
 		j keypress_happened
 	
 	restart:
@@ -180,9 +181,9 @@ game:
 			j calcpos
 	
 	calcpos:
-		bltz $t5, resetleft
-		bltz $t6, restart
-		bgt $t5, 61, resetright
+		bltz $t5, gameover
+		bltz $t6, gameover
+		bgt $t5, 61, gameover
 		bgt $t6, PERROW, gameover
 		# adress(x,y) = address(t5,t6) = (t6 * PERROW + t5)*4
 		li $t8, PERROW
@@ -307,6 +308,7 @@ game:
 	character:
 		move $t4, $t0
 		add $t4, $t4, $t3
+		li $s0, 0x000000
 		li $s6, 1
 		
 		# Check if pixel is coin
@@ -360,12 +362,19 @@ game:
 		# Check if pixel is coin
 		lw $s0, 0($t4)
 		beq $s0, $s4, touchcoin
+		# Check if pixel is green
+		lw $s0, 0($t4)
+		beq $s0, $s2, touchgreen
 		li $s0, 0x000000
 		
 		sw $s0, 0($t4)
-
+		
 		j continue
 		
+	touchgreen:
+		subi $t6, $t6, 1
+		j calcpos
+	
 	touchcoin:
 		addi $s7, $s7, 1
 		j restart
