@@ -26,7 +26,7 @@
 # 3. Moving Platforms (Not Finished Implementing)
 #
 # Link to video demonstration for final submission:
-# - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
+# - https://youtu.be/kcDHNGSMqBc
 #
 # Are you OK with us sharing the video with people outside course staff?
 # - yes
@@ -35,7 +35,7 @@
 # --- 	The controls are supposed to be continuous so the sprite keeps moving left even after the user lets go of the 'a' key for example
 #	This can be overriden with the 'd' key
 # --- 	The Win Condition is touching the gold coin, the sprite will go to the next level after doing so
-# --- 	The Lose COndition is falling into the void (touching the sides of the screen)
+# --- 	The Lose Condition is falling into the void (touching the sides of the screen)
 #
 #####################################################################
 
