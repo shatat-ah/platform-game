@@ -35,7 +35,7 @@
 # --- 	The controls are supposed to be continuous so the sprite keeps moving left even after the user lets go of the 'a' key for example
 #	This can be overriden with the 'd' key
 # --- 	The Win Condition is touching the gold coin, the sprite will go to the next level after doing so
-# --- 	The Lose COndition is falling into the void (touching the bottom of the screen)
+# --- 	The Lose COndition is falling into the void (touching the sides of the screen)
 #
 #####################################################################
 
